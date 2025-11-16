@@ -1,0 +1,413 @@
+================================================================================
+MODÜLER C++ PROJE YAPISI - DETAYLI AÇIKLAMA
+================================================================================
+
+Bu doküman, modüler C++ proje yapısının nasıl kurulduğunu ve çalıştığını
+açıklamaktadır.
+
+================================================================================
+1. PROJE YAPISI GENEL BAKIŞ
+================================================================================
+
+Bu proje MODÜLER bir yapı kullanıyor. Her modül iki dosyadan oluşur:
+- Header dosyası (.h): Fonksiyon bildirimleri (interface)
+- Implementation dosyası (.cpp): Fonksiyon tanımları (implementation)
+
+Proje Yapısı:
+├── basic.h          (Header - Basic işlemler için bildirimler)
+├── basic.cpp        (Implementation - Basic işlemlerin kodları)
+├── advanced.h       (Header - Gelişmiş işlemler için bildirimler)
+├── advanced.cpp     (Implementation - Gelişmiş işlemlerin kodları)
+├── utils.h          (Header - Yardımcı fonksiyonlar için bildirimler)
+├── utils.cpp        (Implementation - Yardımcı fonksiyonların kodları)
+├── maincalculator.cpp (Ana program dosyası)
+└── Makefile.win     (Derleme talimatları)
+
+================================================================================
+2. HEADER DOSYALARI (.h) - INTERFACE
+================================================================================
+
+Header dosyaları, fonksiyonların NASIL çağrılacağını söyler.
+Fonksiyonların içeriği burada YOKTUR, sadece bildirimler vardır.
+
+ÖRNEK: basic.h
+
+#ifndef BASIC_H
+#define BASIC_H
+namespace Basic
+{
+    double add(const double a,const double b);
+    double subtract(const double a,const double b);
+    double division(const double a,const double b);
+    double multiply(const double a,const double b);
+    int remainder(const int a,const int b);
+}
+#endif
+
+ÖNEMLİ NOKTALAR:
+
+1. #ifndef BASIC_H / #define BASIC_H / #endif
+   → Include Guard: Dosyanın birden fazla kez dahil edilmesini önler
+   → Çoklu include hatalarını engeller
+
+2. namespace Basic
+   → Fonksiyonları Basic::add() şeklinde çağırırız
+   → İsim çakışmalarını önler
+
+3. Fonksiyon bildirimleri
+   → Sadece imzalar (parametreler ve dönüş tipi)
+   → Fonksiyon gövdesi YOKTUR
+
+================================================================================
+3. IMPLEMENTATION DOSYALARI (.cpp) - KOD
+================================================================================
+
+Fonksiyonların GERÇEK kodları burada yazılır.
+
+ÖRNEK: basic.cpp
+
+#include<iostream>
+#include<cmath>
+#include<iomanip>
+#include "basic.h"
+using namespace std;
+namespace Basic
+{
+   double add(const double a,const double b)
+   {
+      return a+b;
+   }
+   double subtract(const double a,const double b)
+   {
+      return a-b;
+   }
+   double division(const double a,const double b)
+   {
+       if(b==0)
+       {
+           cout<<"Division by zero\n";
+           exit(1);
+       }
+       return a/b;
+   }
+   double multiply(const double a,const double b)
+   {
+      return a*b;
+   }
+   int remainder(const int a,const int b)
+   {
+       if(b==0)
+       {
+           cout<<"Division by zero\n";
+           exit(1);
+       }
+       return a%b;
+   }
+}
+
+ÖNEMLİ NOKTALAR:
+
+1. #include "basic.h"
+   → Kendi header dosyasını dahil eder
+   → Bu sayede fonksiyon bildirimlerine erişir
+
+2. namespace Basic
+   → Header ile AYNI namespace kullanılır
+   → Bu sayede bildirimler ve tanımlar eşleşir
+
+3. Fonksiyon gövdeleri
+   → Gerçek kod burada yazılır
+   → Fonksiyonun ne yaptığı burada tanımlanır
+
+================================================================================
+4. ANA PROGRAM DOSYASI
+================================================================================
+
+maincalculator.cpp tüm modülleri birleştirir:
+
+#include<iostream>
+#include<cmath>
+#include<iomanip>
+#include "basic.h"
+#include "advanced.h"
+#include "utils.h"
+using namespace std;
+
+int main()
+{
+    // Modülleri kullanır
+    double sonuc = Basic::add(5, 3);
+    double kuvvet = Advanced::power(2, 3);
+    int secim = Utils::menu();
+    return 0;
+}
+
+ÖNEMLİ NOKTALAR:
+
+1. Header dosyalarını dahil eder
+   → #include "basic.h" ile modülleri kullanır
+   → Sadece header'ları dahil eder, .cpp dosyalarını değil
+
+2. main() fonksiyonu
+   → Programın giriş noktası
+   → Tüm modülleri kullanır
+
+3. Modül kullanımı
+   → Basic::add() şeklinde çağırır
+   → Namespace::fonksiyon() formatı
+
+================================================================================
+5. NAMESPACE KULLANIMI
+================================================================================
+
+Namespace, fonksiyonları gruplar ve çakışmaları önler:
+
+Basic::add(5, 3)        → Basic modülünden add fonksiyonu
+Advanced::power(2, 3)  → Advanced modülünden power fonksiyonu
+Utils::menu()          → Utils modülünden menu fonksiyonu
+
+AVANTAJLARI:
+- Aynı isimde fonksiyonlar farklı modüllerde olabilir
+- Kod daha organize olur
+- Hangi modülden geldiği açıkça belli olur
+
+================================================================================
+6. DERLEME SÜRECİ (MAKEFILE)
+================================================================================
+
+Makefile, derlemeyi otomatikleştirir:
+
+OBJ      = advanced.o basic.o maincalculator.o utils.o
+LINKOBJ  = advanced.o basic.o maincalculator.o utils.o
+
+DERLEME ADIMLARI:
+
+1. Her .cpp dosyası AYRI derlenir → .o (object) dosyaları oluşur
+   - basic.cpp → basic.o
+   - advanced.cpp → advanced.o
+   - utils.cpp → utils.o
+   - maincalculator.cpp → maincalculator.o
+
+2. Tüm .o dosyaları BİRLEŞTİRİLİR → .exe oluşur
+   - Calculator.exe
+
+MAKEFILE KURALLARI:
+
+advanced.o: advanced.cpp
+	$(CPP) -c advanced.cpp -o advanced.o $(CXXFLAGS)
+
+basic.o: basic.cpp
+	$(CPP) -c basic.cpp -o basic.o $(CXXFLAGS)
+
+maincalculator.o: maincalculator.cpp
+	$(CPP) -c maincalculator.cpp -o maincalculator.o $(CXXFLAGS)
+
+utils.o: utils.cpp
+	$(CPP) -c utils.cpp -o utils.o $(CXXFLAGS)
+
+$(BIN): $(OBJ)
+	$(CPP) $(LINKOBJ) -o $(BIN) $(LIBS)
+
+AVANTAJLARI:
+- Her modül ayrı derlenir
+- Bir modül değişirse sadece o modül yeniden derlenir
+- Derleme süresi kısalır
+
+================================================================================
+7. YENİ BİR MODÜL EKLEME ADIMLARI
+================================================================================
+
+ÖRNEK: Trigonometric (Trigonometrik) modülü ekleyelim
+
+ADIM 1: Header dosyası oluştur (trigonometric.h)
+
+#ifndef TRIGONOMETRIC_H
+#define TRIGONOMETRIC_H
+#include <cmath>
+
+namespace Trigonometric
+{
+    double sine(double angle);
+    double cosine(double angle);
+    double tangent(double angle);
+}
+#endif
+
+ADIM 2: Implementation dosyası oluştur (trigonometric.cpp)
+
+#include "trigonometric.h"
+#include <cmath>
+
+namespace Trigonometric
+{
+    double sine(double angle)
+    {
+        return sin(angle);
+    }
+    
+    double cosine(double angle)
+    {
+        return cos(angle);
+    }
+    
+    double tangent(double angle)
+    {
+        return tan(angle);
+    }
+}
+
+ADIM 3: Ana dosyada kullan (maincalculator.cpp)
+
+#include "trigonometric.h"
+
+// Kullanım:
+double result = Trigonometric::sine(3.14159 / 2);
+
+ADIM 4: Makefile'a ekle (Makefile.win)
+
+OBJ      = advanced.o basic.o maincalculator.o utils.o trigonometric.o
+LINKOBJ  = advanced.o basic.o maincalculator.o utils.o trigonometric.o
+
+trigonometric.o: trigonometric.cpp
+	$(CPP) -c trigonometric.cpp -o trigonometric.o $(CXXFLAGS)
+
+================================================================================
+8. MODÜLER YAPININ AVANTAJLARI
+================================================================================
+
+1. MODÜLERLİK
+   - Her modül bağımsız çalışır
+   - Bir modülü değiştirmek diğerlerini etkilemez
+
+2. YENİDEN KULLANILABİLİRLİK
+   - Modüller başka projelerde de kullanılabilir
+   - Kod tekrarı azalır
+
+3. BAKIM KOLAYLIĞI
+   - Hata bulma ve düzeltme kolaylaşır
+   - Değişiklikler modül bazında yapılır
+
+4. HIZLI DERLEME
+   - Sadece değişen modüller yeniden derlenir
+   - Büyük projelerde zaman kazandırır
+
+5. ORGANİZASYON
+   - Kod daha düzenli ve okunabilir olur
+   - Takım çalışması kolaylaşır
+
+6. TEST EDİLEBİLİRLİK
+   - Her modül ayrı test edilebilir
+   - Birim testler yazılabilir
+
+================================================================================
+9. ÖNEMLİ KURALLAR VE İPUÇLARI
+================================================================================
+
+1. INCLUDE GUARD KULLAN
+   Her header dosyasında mutlaka include guard olmalı:
+   #ifndef MODUL_ADI_H
+   #define MODUL_ADI_H
+   // kodlar
+   #endif
+
+2. HEADER'DA SADECE BİLDİRİM
+   Header dosyalarında fonksiyon gövdesi olmamalı
+   Sadece fonksiyon imzaları olmalı
+
+3. NAMESPACE TUTARLILIĞI
+   Header ve .cpp dosyalarında aynı namespace kullanılmalı
+
+4. KENDİ HEADER'INI DAHİL ET
+   Her .cpp dosyası kendi header'ını dahil etmeli
+   #include "modul_adi.h"
+
+5. MAKEFILE GÜNCELLE
+   Yeni modül eklediğinde Makefile'ı güncellemeyi unutma
+
+6. İSİMLENDİRME
+   - Header: modul_adi.h
+   - Implementation: modul_adi.cpp
+   - Namespace: ModulAdi (PascalCase)
+
+================================================================================
+10. DERLEME KOMUTLARI
+================================================================================
+
+MAKEFILE İLE DERLEME:
+make -f Makefile.win
+
+VEYA MANUEL DERLEME:
+
+1. Object dosyaları oluştur:
+   g++ -c basic.cpp -o basic.o
+   g++ -c advanced.cpp -o advanced.o
+   g++ -c utils.cpp -o utils.o
+   g++ -c maincalculator.cpp -o maincalculator.o
+
+2. Birleştir ve exe oluştur:
+   g++ basic.o advanced.o utils.o maincalculator.o -o Calculator.exe
+
+TEK KOMUTLA DERLEME (küçük projeler için):
+   g++ basic.cpp advanced.cpp utils.cpp maincalculator.cpp -o Calculator.exe
+
+================================================================================
+11. SIK KARŞILAŞILAN HATALAR VE ÇÖZÜMLERİ
+================================================================================
+
+HATA 1: "undefined reference to..."
+ÇÖZÜM: Implementation dosyasını (.cpp) derlemeyi unutmuşsunuz
+       Makefile'da tüm .cpp dosyalarının derlendiğinden emin olun
+
+HATA 2: "multiple definition of..."
+ÇÖZÜM: Include guard eksik veya yanlış
+       Header dosyasında #ifndef/#define/#endif kontrol edin
+
+HATA 3: "no such file or directory"
+ÇÖZÜM: Include path yanlış
+       #include "dosya.h" formatını kullanın (çift tırnak)
+
+HATA 4: Namespace hatası
+ÇÖZÜM: Header ve .cpp'de aynı namespace kullanıldığından emin olun
+
+HATA 5: Fonksiyon bulunamıyor
+ÇÖZÜM: Header dosyasını dahil etmeyi unutmuş olabilirsiniz
+       #include "modul.h" ekleyin
+
+================================================================================
+12. ÖZET
+================================================================================
+
+MODÜLER C++ PROJESİ NASIL ÇALIŞIR:
+
+1. Header (.h) → Ne yapılacağını söyler (bildirim)
+2. Implementation (.cpp) → Nasıl yapılacağını söyler (kod)
+3. Namespace → Fonksiyonları gruplar
+4. Include Guard → Çoklu dahil etmeyi önler
+5. Makefile → Derlemeyi otomatikleştirir
+
+BU YAPI NEDEN ÖNEMLİ:
+
+- Büyük projelerde kod organizasyonu için standart yöntem
+- Profesyonel yazılım geliştirmede yaygın kullanılır
+- Kod bakımı ve geliştirme kolaylaşır
+- Takım çalışması için idealdir
+
+================================================================================
+SON NOTLAR
+================================================================================
+
+Bu modüler yapı, C++'ta en yaygın ve önerilen proje organizasyon yöntemidir.
+Küçük projelerden büyük kurumsal projelere kadar her ölçekte kullanılır.
+
+Öğrenmek için:
+- Her modülü tek tek inceleyin
+- Yeni modüller eklemeyi deneyin
+- Farklı namespace'ler deneyin
+- Makefile'ı anlamaya çalışın
+
+Başarılar!
+
+================================================================================
+Doküman Tarihi: 2024
+================================================================================
+
